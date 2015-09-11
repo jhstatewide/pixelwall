@@ -1,0 +1,5 @@
+node_modules
+_build
+deps
+bower_components
+priv/static
