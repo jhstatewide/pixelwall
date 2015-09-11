@@ -1,0 +1,6 @@
+{"name": "pixelwall",
+  "dependencies": {
+    "jquery": "~ 2.1",
+    "mjolnic-bootstrap-colorpicker": "~ 2.3"
+  }
+}

@@ -1,0 +1,25 @@
+<div class="row">
+
+  <div class="col-lg-12">
+    <h1>Pixel Wall 1.0</h1>
+  </div>
+
+  <div class="col-lg-12">
+    <canvas width=800 height=600 id="pixelwall">
+  </div>
+
+  <div class="col-lg-6">
+    Current Color: <div id="color-area"></div>
+  </div>
+
+  <div class="col-lg-6">
+    <div style="text-align: center;">
+      <button data-color="#000000" class="btn color-btn">Black</button>
+      <button data-color="#FF0000" class="btn color-btn">Red</button>
+      <button data-color="#00FF00" class="btn color-btn">Green</button>
+      <button data-color="#0000FF" class="btn color-btn">Blue</button>
+      <button data-color="#FFFFFF" class="btn color-btn">White</button>
+    </div>
+  </div>
+
+</div>
