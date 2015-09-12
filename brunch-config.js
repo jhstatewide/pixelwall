@@ -59,7 +59,9 @@ exports.config = {
 
   modules: {
     autoRequire: {
-      "js/app.js": ["web/static/js/app"]
+      "js/app.js": ["web/static/js/app"],
+      "js/spectrum.js": ["web/static/js/spectrum"],
+      "js/bootstrap-slider.js": ["web/static/js/bootstrap-slider"]
     }
   },
 

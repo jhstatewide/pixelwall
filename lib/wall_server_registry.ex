@@ -23,7 +23,7 @@ defmodule Pixelwall.WallServerRegistry do
     else
       {:ok, wall_server} = Pixelwall.WallServer.start_link(name: name)
       # now we also want to set up a loop to save every X seconds
-      wall_server |> Process.send_after(:periodic_save, 60000)
+      wall_server |> Process.send_after(:periodic_save, Pixelwall.WallServer.save_interval)
       {:reply, wall_server, Map.put(wall_servers, name, wall_server)}
     end
   end

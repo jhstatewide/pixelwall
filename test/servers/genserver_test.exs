@@ -4,9 +4,8 @@ defmodule Pixelwall.WallServerTest do
   test "it should be able to start a server" do
     {:ok, wall_server} = Pixelwall.WallServer.start_link(name: "awesome")
     assert(wall_server)
-    assert(Pixelwall.Wall.pixel_count(Pixelwall.WallServer.wall(wall_server)) == 0)
     Pixelwall.WallServer.put!(wall_server, 0, 0, "#FF0000")
-    assert(Pixelwall.Wall.pixel_count(Pixelwall.WallServer.wall(wall_server)) == 1)
+    assert(Pixelwall.WallServer.get(wall_server, 0, 0).color ==  "#FF0000")
   end
 end
 
@@ -33,5 +32,11 @@ defmodule Pixelwall.WallRegistryTest do
     {:ok, registry1} = Pixelwall.WallServerRegistry.start_link
     {:ok, registry2} = Pixelwall.WallServerRegistry.start_link
     assert(registry1 == registry2)
+  end
+
+  test "it should be able to put a circle" do
+    {:ok, wall_server_registry} = Pixelwall.WallServerRegistry.start_link
+    wall_server = wall_server_registry |> Pixelwall.WallServerRegistry.lookup("2")
+    wall_server |> Pixelwall.WallServer.put_circle!(0, 0, "#0000FF", 5)
   end
 end

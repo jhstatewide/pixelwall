@@ -1,35 +1,40 @@
 import socket from "./socket"
+import PixelBuffer from "./pixel_buffer"
 
 function coordToKey(x,y) {
   return "" + x + "," + y;
 }
 
-var Pixel = {
-  x: null,
-  y: null,
-  color: null,
-  init: function init(x, y, color) {
-    this.x = x;
-    this.y = y;
-    this.color = color;
-    return this;
-  }
-};
+function Pixel(wallName, x, y, color) {
+  this.x = x;
+  this.y = y;
+  this.color = color;
+  this.wallName = wallName;
+  return this;
+}
+
+var PIXEL_SIZE = 2;
 
 var WallCanvas = {
-  PIXEL_SIZE: 5,
+  PIXEL_SIZE: PIXEL_SIZE,
   x1: 0,
   y1: 0,
-  x2: 200,
-  y2: 200,
+  x2: 720 / PIXEL_SIZE,
+  y2: 720 / PIXEL_SIZE,
   pixels: {},
+  pixelBuffer: null,
   channel: null,
   self: this,
   init: function init(name) {
     console.log("WallCanvas initialized");
+    var self = this;
     this.name = name;
     this.connect();
     this.self = this;
+    this.pixelBuffer = PixelBuffer.init(100, function(list) {
+      self.channel.push("put_multi", list);
+      list.length = 0;
+    })
     return this;
   },
   connect: function() {
@@ -40,32 +45,48 @@ var WallCanvas = {
       .receive("ok", resp => { console.log("Joined successfully", resp) })
       .receive("error", resp => { console.log("Unable to join", resp) });
   },
-  push: function push(px, py) {
-    var key = coordToKey(px,py);
-    var pixel = this.pixels[key];
-    if (pixel) {
-      var data = {wall: this.name, x: px, y: py, color: pixel.color};
-      // console.log("I'm pushing this over the web socket: %o", data );
-      this.channel.push("put", data);
+  push: function push(drawObject) {
+    // console.log("Doing a push to %o, %o", px, py);
+    var x = drawObject.x;
+    var y = drawObject.y;
+    if (drawObject.type == "pixel") {
+      var key = coordToKey(x,y);
+      var pixel = this.pixels[key];
+      if (pixel.x != x || pixel.y != y) {
+        throw("Pixel we looked up isn't the same coordinates!");
+      }
+      if (pixel) {
+        var pushObject = {type: 'pixel', x: pixel.x, y: pixel.y, color: pixel.color, wall: this.name}
+        this.pixelBuffer.add(pushObject);
+      }
+    } else if (drawObject.type == "circle") {
+      this.pixelBuffer.add({type: 'circle', x: x, y: y, color: drawObject.color, wall: this.name, size: drawObject.size})
+    } else {
+      throw "Unknown drawObject type: " + drawObject.type;
     }
+
   },
-  put: function put(x, y, color) {
-    // console.log("WallCanvas: Putting at %o, %o -> %o", x, y, color);
-    // console.log("The channel is: %o", this.channel);
+  putPixel: function put(x, y, color) {
     var key = coordToKey(x,y);
+    // console.log("WallCanvas: Putting at %o -> %o", key, color);
+    // console.log("The channel is: %o", this.channel);
+
     if (this.pixels[key]) {
+      // console.log("Updating pixel at %o to %o", key, color)
       this.pixels[key].color = color;
     } else {
-      var pixel = Pixel.init(x, y, color);
+      var pixel = new Pixel(this.name, x, y, color);
+      // console.log("Setting pixel at %o to %o", key, pixel);
       this.pixels[key] = pixel;
     }
+    // console.log("After put, pixel at %o is %o", key, this.pixels[key])
   },
   get: function get(x, y) {
     var key = coordToKey(x,y);
     if (this.pixels[key]) {
       return this.pixels[key];
     } else {
-      return Pixel.init(x, y, "#FFFFFF");
+      return new Pixel(this.name, x, y, "#FFFFFF");
     }
   },
   allPixels: function() {

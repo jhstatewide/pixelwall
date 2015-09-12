@@ -23,7 +23,20 @@ import WallCanvas from "./wallcanvas"
 
 var wall1 = WallCanvas.init("1");
 var wallCanvas = document.getElementById('pixelwall');
+
 console.log("Our wall starts at: ", wall1.x1);
+
+function pixelsForCircle(x, y, radius) {
+  var newPixels = [];
+  for(var cy=-radius; cy<=radius; cy++) {
+      for(var cx=-radius; cx<=radius; cx++) {
+        if(cx*cx+cy*cy <= radius*radius) {
+          newPixels.push([x+cx, y+cy]);
+        }
+      }
+  }
+  return newPixels;
+}
 
 function lineInterpolate( point1, point2, distance )
 {
@@ -85,28 +98,48 @@ function localToPixel(x) {
   return Math.floor(x / WallCanvas.PIXEL_SIZE);
 }
 
-function handleCanvasClick(canvas, x, y) {
+function drawCircle(wall1, canvasContext, px, py, color, brushSize) {
+  var circlePixels = pixelsForCircle(px, py, brushSize);
+  circlePixels.forEach( function(coords) {
+    var px = coords[0];
+    var py = coords[1];
+    wall1.putPixel(px, py, color);
+    // wall1.push(px, py);
+    renderSinglePixel(wall1, canvasContext, px, py);
+  });
+}
+
+function handleCanvasDrag(canvas, x, y) {
   var px = localToPixel(x);
   var py = localToPixel(y);
   if (lastPx != px || lastPy != py) {
     // console.log("We clicked the canvas at: %o, %o (raw: %o, %o)", px, py, x, y);
     var newPoints = lineInterpolate({x: lastPx, y: lastPy}, {x: px, y: py}, 1);
-    console.log("The new points are: %o", newPoints);
     lastPx = px;
     lastPy = py;
     newPoints.forEach( function(point) {
       var px = point.x;
       var py = point.y;
-      wall1.put(px, py, currentColor);
-      wall1.push(px, py);
-      renderSinglePixel(wall1, canvas.getContext('2d'), px, py);
+      // console.log("Handle canvasclick %o,%o with color %o", px, py, currentColor);
+      if (brushSize == 1) {
+        wall1.putPixel(px, py, currentColor);
+        wall1.push({type: 'pixel', x: px, y: py});
+        renderSinglePixel(wall1, canvas.getContext('2d'), px, py);
+      } else {
+        drawCircle(wall1, canvas.getContext('2d'), px, py, currentColor, brushSize);
+        wall1.push({type: 'circle', x: px, y: py, color: currentColor, size: brushSize})
+      }
+
     });
   }
 }
 
 var lastPx = 0;
 var lastPy = 0;
-var currentColor = '#000000';
+var brushSize = 1;
+
+var currentColor = '#'+(function lol(m,s,c){return s[m.floor(m.random() * s.length)] +
+  (c && lol(m,s,c-1));})(Math,'0123456789ABCDEF',4);
 
 function updateCurrentColor(color) {
   $('#color-area').css("background-color", color);
@@ -131,7 +164,7 @@ function recursiveLoad(wall, rows) {
       // console.log("We got: %o", data);
       for (var x = startX; x < endX; x++) {
         var idx = endX - x;
-        wall.put(x, row, data[idx]);
+        wall.putPixel(x, row, data[idx]);
         renderSinglePixel(wall, wallCanvas.getContext('2d'), x, row);
       }
       recursiveLoad(wall, rows);
@@ -146,11 +179,25 @@ $(document).ready( function() {
 
   $('.demo2').colorpicker();
 
+  $("#sizeSlider").slider({
+     formatter: function(value) {
+  		    return 'Current value: ' + value;
+	   }
+  });
+
+  // $("#sizeSlider").slider('setValue', brushSize);
+
+  $('#sizeSlider').on("change", function(evt) {
+    var newSize = evt.value.newValue;
+    console.log("Changed brush size to: %o", newSize);
+    brushSize = newSize;
+  });
+
   $(wallCanvas).mousemove( function(evt) {
     if (evt.which == 1) {
       var x = evt.offsetX;
       var y = evt.offsetY;
-      handleCanvasClick(wallCanvas, x, y);
+      handleCanvasDrag(wallCanvas, x, y);
     }
   });
 
@@ -159,9 +206,15 @@ $(document).ready( function() {
     var y = evt.offsetY;
     lastPx = localToPixel(x);
     lastPy = localToPixel(y);
-    wall1.put(lastPx, lastPy, currentColor);
-    wall1.push(lastPx, lastPy);
-    renderSinglePixel(wall1, canvas.getContext('2d'), lastPx, lastPy);
+    if (brushSize == 1) {
+      wall1.putPixel(lastPx, lastPy, currentColor);
+      wall1.push({type: 'pixel', x: lastPx, y: lastPy});
+      renderSinglePixel(wall1, wallCanvas.getContext('2d'), lastPx, lastPy);
+    } else {
+      drawCircle(wall1, wallCanvas.getContext('2d'), lastPx, lastPy, currentColor, brushSize);
+      wall1.push({type: 'circle', x: lastPx, y: lastPy, color: currentColor, size: brushSize})
+    }
+
   });
 
   var rowCount = wall1.y2 - wall1.y1;
@@ -172,8 +225,26 @@ $(document).ready( function() {
 
   wall1.channel.on("put", function(data) {
     // console.log("We got this from the socket: %o", data);
-    wall1.put(data.x, data.y, data.color);
-    renderSinglePixel(wall1, wallCanvas.getContext('2d'), data.x, data.y);
+    setTimeout( function() {
+      wall1.put(data.x, data.y, data.color);
+      renderSinglePixel(wall1, wallCanvas.getContext('2d'), data.x, data.y);
+    }, 100);
+  });
+
+  wall1.channel.on("put_multi", function(datas) {
+    // console.log("We got this from the socket: %o", datas);
+    setTimeout( function() {
+      datas['commands'].forEach(function(command) {
+        if (command.type == 'pixel') {
+          wall1.putPixel(command.x, command.y, command.color);
+          renderSinglePixel(wall1, wallCanvas.getContext('2d'), command.x, command.y);
+        } else if (command.type == 'circle') {
+          drawCircle(wall1, wallCanvas.getContext('2d'), command.x, command.y, command.color, command.size);
+        } else {
+          throw "Unknown command type: " + command.type;
+        }
+      });
+    }, 100);
   });
 
   $('.color-btn').click( function(evt) {
@@ -182,4 +253,17 @@ $(document).ready( function() {
     // console.log("We selected color: " + selectedColor)
     updateCurrentColor(selectedColor);
   });
+
+  $('.bootstrap-colorpicker').colorpicker();
+  $('.bootstrap-colorpicker').colorpicker('setValue', currentColor);
+  $('.bootstrap-colorpicker input').on('click', function() {
+      $('.bootstrap-colorpicker').colorpicker('show');
+  });
+
+  $('.bootstrap-colorpicker').colorpicker().on('changeColor.colorpicker', function(event){
+    var selectedColor = event.color.toHex();
+    $('.bootstrap-colorpicker input').css("background-color", selectedColor);
+    updateCurrentColor(selectedColor);
+  });
+
 });

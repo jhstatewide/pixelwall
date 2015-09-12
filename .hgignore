@@ -3,3 +3,4 @@ _build
 deps
 bower_components
 priv/static
+.git

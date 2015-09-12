@@ -7,6 +7,7 @@ defmodule Pixelwall.Pixel do
     field :y, :integer
     field :color
     field :wall_id, :binary_id
+    field :dirty, :boolean, virtual: true, default: false
   end
 
   def from_row(query, y) do

@@ -39,13 +39,29 @@ defmodule Pixelwall.Wall do
     "#{x},#{y}"
   end
 
+  def circle_pixels(x, y, radius) do
+    Enum.flat_map(-radius..radius, fn(cy) ->
+      Enum.map(-radius..radius, fn(cx) ->
+          [cx,cy]
+        end)
+    end)
+    |> Enum.filter(fn(coord) ->
+      [cx, cy] = coord
+      cx*cx+cy*cy <= radius*radius
+    end)
+    |> Enum.map(fn(coord) ->
+      [nx, ny] = coord
+      {Pixelwall.Utils.to_integer(nx) + x, Pixelwall.Utils.to_integer(ny) + y}
+    end)
+  end
+
   def get(wall, x, y) do
     # try to get pixel at x, y with wall_id equal...
     wall.pixels[coord_key(x, y)] || blank_pixel(wall, x, y)
   end
 
-  def get_row(wall, start_x, end_x, row) do
-    filled_in_pixels = Enum.map(start_x..end_x, fn(x) -> [x, row] end)
+  def get_row(wall, start_x, end_x, row_number) do
+    filled_in_pixels = Enum.map(start_x..end_x, fn(x) -> [x, row_number] end)
     |> Enum.map(fn(coord) ->
         [x,y] = coord
         possible_pixel = Pixelwall.Wall.get(wall, x, y)
@@ -60,7 +76,7 @@ defmodule Pixelwall.Wall do
   end
 
   def save_pixel(pixel) do
-    if pixel.id do
+    if pixel.id && pixel.dirty do
         Pixelwall.Repo.update!(pixel)
     else
         Pixelwall.Repo.insert!(pixel)
@@ -76,7 +92,12 @@ defmodule Pixelwall.Wall do
   end
 
   def save_pixels(wall) do
-    Enum.each(wall.pixels, fn({coord, p}) -> save_pixel(p) end)
+    wall.pixels
+    |> Enum.each(fn({coord, p}) ->
+      if (p.dirty) do
+        save_pixel(p)
+      end
+    end)
     wall |> Pixelwall.Wall.load_pixels
   end
 
@@ -87,7 +108,7 @@ defmodule Pixelwall.Wall do
   def put(wall, x, y, color) do
     pixel = get(wall, x, y) || %Pixelwall.Pixel{x: x, y: y, color: color, wall_id: wall.id}
     if (pixel.color != color) do
-      pixel = %{pixel | color: color}
+      pixel = %{pixel | color: color, dirty: true}
       %{wall | pixels: Map.put(wall.pixels, coord_key(x, y), pixel)}
     else
       wall

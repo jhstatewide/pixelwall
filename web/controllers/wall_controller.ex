@@ -20,8 +20,7 @@ defmodule Pixelwall.WallController do
     row_number = Map.get(params, "row") |> Pixelwall.Utils.to_integer
     start_x = Map.get(params, "start_x") |> Pixelwall.Utils.to_integer
     end_x = Map.get(params, "end_x") |> Pixelwall.Utils.to_integer
-    wall = wall_server(name) |> Pixelwall.WallServer.wall()
-    pixels = wall |> Pixelwall.Wall.get_row(start_x, end_x, row_number)
+    pixels = wall_server(name) |> Pixelwall.WallServer.get_row(start_x, end_x, row_number)
     colors = pixels |> Enum.map(fn(p) -> p.color end) |> Enum.reverse
     json conn, colors
   end

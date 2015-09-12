@@ -7,9 +7,6 @@ defmodule Pixelwall.Router do
     plug :fetch_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-
-    IO.puts("Starting static plug at: #{System.cwd}")
-    plug Plug.Static, at: "/img", from: {:pixelwall, "priv/static/img"}
   end
 
   pipeline :api do

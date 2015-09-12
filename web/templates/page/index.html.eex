@@ -1,25 +1,34 @@
 <div class="row">
 
   <div class="col-lg-12">
-    <h1>Pixel Wall 1.0</h1>
+    <h1 style="margin-top: 0px;">Pixel Wall 1.0</h1>
+  </div>
+
+  <div class="col-lg-2">
+    <b>Color:</b>
+  </div>
+
+  <div class="col-lg-10" style="margin-bottom: 1em;">
+    <div style="text-align: center; display: block; margin-left: auto; margin-right: auto;">
+      <div class="input-group bootstrap-colorpicker">
+        <input type="text" value="#000000" class="form-control" />
+        <span class="input-group-addon"><i></i></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-2">
+    <b>Brush size:</b>
+  </div>
+
+  <div class="col-lg-6" style="margin-bottom: 1em;">
+    <input id="sizeSlider" data-slider-id='sizeSlider' type="text" data-slider-min="1" data-slider-max="5" data-slider-step="1" data-slider-value="1"/>
   </div>
 
   <div class="col-lg-12">
-    <canvas width=800 height=600 id="pixelwall">
+    <canvas width=720 height=600 id="pixelwall">
   </div>
 
-  <div class="col-lg-6">
-    Current Color: <div id="color-area"></div>
-  </div>
 
-  <div class="col-lg-6">
-    <div style="text-align: center;">
-      <button data-color="#000000" class="btn color-btn">Black</button>
-      <button data-color="#FF0000" class="btn color-btn">Red</button>
-      <button data-color="#00FF00" class="btn color-btn">Green</button>
-      <button data-color="#0000FF" class="btn color-btn">Blue</button>
-      <button data-color="#FFFFFF" class="btn color-btn">White</button>
-    </div>
-  </div>
 
 </div>
