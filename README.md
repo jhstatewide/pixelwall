@@ -7,7 +7,7 @@ This project is a proof-of-concept networked web canvas. Everything is handled c
 
 # Live Demo
 
-  * Official website: <a href="http://pixel.io">http://pixel.io</a>
+  * Official website: <a href="http://pixelwall.statewide.software">http://pixelwall.statewide.software</a>
 
 ## Thanks
 * José Valim
