@@ -70,21 +70,16 @@ function lineInterpolate( point1, point2, distance )
 
 function renderSinglePixel(wall, context, px, py) {
   var pixel = wall.get(px, py);
-  // console.log("Rending pixel at %o,%o is equal to %o", px, py, pixel);
   var cx1 = px * WallCanvas.PIXEL_SIZE;
   var cy1 = py * WallCanvas.PIXEL_SIZE;
   context.fillStyle = pixel.color;
-  // console.log("The bounds of %o,%o are %o,%o -> %o,%o", px, py, cx1, cy1, WallCanvas.PIXEL_SIZE, WallCanvas.PIXEL_SIZE);
   context.fillRect(cx1, cy1, WallCanvas.PIXEL_SIZE, WallCanvas.PIXEL_SIZE);
 }
 
 function render(wall, canvas) {
-  // console.log("Our canvas is: %o", canvas);
   var context = canvas.getContext('2d');
   context.width = (wall.x2 - wall.x1) * WallCanvas.PIXEL_SIZE;
   context.height = (wall.y2 - wall.y1) * WallCanvas.PIXEL_SIZE;
-  //$(canvas).width(context.width);
-  //$(canvas).height(context.height);
   $(canvas).css("border", "1px solid #000000");
   // OK, now iterate over EVERY pixel and get the data...
   for (var py = wall.y1; py < wall.y2; py++) {
@@ -104,7 +99,6 @@ function drawCircle(wall1, canvasContext, px, py, color, brushSize) {
     var px = coords[0];
     var py = coords[1];
     wall1.putPixel(px, py, color);
-    // wall1.push(px, py);
     renderSinglePixel(wall1, canvasContext, px, py);
   });
 }
@@ -113,14 +107,12 @@ function handleCanvasDrag(canvas, x, y) {
   var px = localToPixel(x);
   var py = localToPixel(y);
   if (lastPx != px || lastPy != py) {
-    // console.log("We clicked the canvas at: %o, %o (raw: %o, %o)", px, py, x, y);
     var newPoints = lineInterpolate({x: lastPx, y: lastPy}, {x: px, y: py}, 1);
     lastPx = px;
     lastPy = py;
     newPoints.forEach( function(point) {
       var px = point.x;
       var py = point.y;
-      // console.log("Handle canvasclick %o,%o with color %o", px, py, currentColor);
       if (brushSize == 1) {
         wall1.putPixel(px, py, currentColor);
         wall1.push({type: 'pixel', x: px, y: py});
@@ -129,7 +121,6 @@ function handleCanvasDrag(canvas, x, y) {
         drawCircle(wall1, canvas.getContext('2d'), px, py, currentColor, brushSize);
         wall1.push({type: 'circle', x: px, y: py, color: currentColor, size: brushSize})
       }
-
     });
   }
 }
@@ -137,6 +128,7 @@ function handleCanvasDrag(canvas, x, y) {
 var lastPx = 0;
 var lastPy = 0;
 var brushSize = 1;
+var mouseDown = false;
 
 var currentColor = '#'+(function lol(m,s,c){return s[m.floor(m.random() * s.length)] +
   (c && lol(m,s,c-1));})(Math,'0123456789ABCDEF',4);
@@ -168,6 +160,9 @@ function recursiveLoad(wall, rows) {
         renderSinglePixel(wall, wallCanvas.getContext('2d'), x, row);
       }
       recursiveLoad(wall, rows);
+    },
+    error: function(data, status, xhr) {
+      recursiveLoad(wall, rows);
     }
   });
 }
@@ -177,15 +172,11 @@ updateCurrentColor(currentColor);
 $(document).ready( function() {
   console.log("The document is ready!");
 
-  $('.demo2').colorpicker();
-
   $("#sizeSlider").slider({
      formatter: function(value) {
   		    return 'Current value: ' + value;
 	   }
   });
-
-  // $("#sizeSlider").slider('setValue', brushSize);
 
   $('#sizeSlider').on("change", function(evt) {
     var newSize = evt.value.newValue;
@@ -194,14 +185,19 @@ $(document).ready( function() {
   });
 
   $(wallCanvas).mousemove( function(evt) {
-    if (evt.which == 1) {
+    if (mouseDown) {
       var x = evt.offsetX;
       var y = evt.offsetY;
       handleCanvasDrag(wallCanvas, x, y);
     }
   });
 
+  $(wallCanvas).mouseup( function(evt) {
+    mouseDown = false;
+  })
+
   $(wallCanvas).mousedown( function(evt) {
+    mouseDown = true;
     var x = evt.offsetX;
     var y = evt.offsetY;
     lastPx = localToPixel(x);
@@ -224,7 +220,6 @@ $(document).ready( function() {
   render(wall1, wallCanvas);
 
   wall1.channel.on("put", function(data) {
-    // console.log("We got this from the socket: %o", data);
     setTimeout( function() {
       wall1.put(data.x, data.y, data.color);
       renderSinglePixel(wall1, wallCanvas.getContext('2d'), data.x, data.y);
@@ -232,7 +227,6 @@ $(document).ready( function() {
   });
 
   wall1.channel.on("put_multi", function(datas) {
-    // console.log("We got this from the socket: %o", datas);
     setTimeout( function() {
       datas['commands'].forEach(function(command) {
         if (command.type == 'pixel') {
@@ -248,9 +242,7 @@ $(document).ready( function() {
   });
 
   $('.color-btn').click( function(evt) {
-    // console.log("We clicked: %o", this);
     var selectedColor = $(this).attr("data-color");
-    // console.log("We selected color: " + selectedColor)
     updateCurrentColor(selectedColor);
   });
 

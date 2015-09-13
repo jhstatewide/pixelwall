@@ -68,18 +68,12 @@ var WallCanvas = {
   },
   putPixel: function put(x, y, color) {
     var key = coordToKey(x,y);
-    // console.log("WallCanvas: Putting at %o -> %o", key, color);
-    // console.log("The channel is: %o", this.channel);
-
     if (this.pixels[key]) {
-      // console.log("Updating pixel at %o to %o", key, color)
       this.pixels[key].color = color;
     } else {
       var pixel = new Pixel(this.name, x, y, color);
-      // console.log("Setting pixel at %o to %o", key, pixel);
       this.pixels[key] = pixel;
     }
-    // console.log("After put, pixel at %o is %o", key, this.pixels[key])
   },
   get: function get(x, y) {
     var key = coordToKey(x,y);

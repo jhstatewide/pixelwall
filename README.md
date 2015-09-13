@@ -1,19 +1,14 @@
 # Pixelwall
 
-To start your Phoenix app:
+Pixelwall is your premier multi-user 2d pixel-pushing experience! Pixelwall is a MongoDB backed shared web canvas. Draw anything your heart desires in high-definition 32 bit color.
 
-  1. Install dependencies with `mix deps.get`
-  2. Create and migrate your database with `mix ecto.create && mix ecto.migrate`
-  3. Start Phoenix endpoint with `mix phoenix.server`
+# Why?
+This project is a proof-of-concept networked web canvas. Everything is handled concurrently with <a href="http://elixir-lang.org">Elixir</a>, a new-ish concurrent programming environment, and <a href="http://www.phoenixframework.org/">Phoenix</a>, an amazing Elixir web framework.
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+# Live Demo
 
-Ready to run in production? Please [check our deployment guides](http://www.phoenixframework.org/docs/deployment).
+  * Official website: <a href="http://pixel.io">http://pixel.io</a>
 
-## Learn more
-
-  * Official website: http://www.phoenixframework.org/
-  * Guides: http://phoenixframework.org/docs/overview
-  * Docs: http://hexdocs.pm/phoenix
-  * Mailing list: http://groups.google.com/group/phoenix-talk
-  * Source: https://github.com/phoenixframework/phoenix
+## Thanks
+* José Valim
+* <a href="http://statewide.software">Statewide Software & Systems</a>

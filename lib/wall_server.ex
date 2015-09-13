@@ -57,7 +57,8 @@ defmodule Pixelwall.WallServer do
   end
 
   def save_interval do
-    600000
+    600000 # 10 minutes
+    # 10000 # 10 seconds
   end
 
   def handle_info(:periodic_save, wall) do

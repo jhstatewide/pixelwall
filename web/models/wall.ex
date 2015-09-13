@@ -108,7 +108,7 @@ defmodule Pixelwall.Wall do
   def put(wall, x, y, color) do
     pixel = get(wall, x, y) || %Pixelwall.Pixel{x: x, y: y, color: color, wall_id: wall.id}
     if (pixel.color != color) do
-      pixel = %{pixel | color: color, dirty: true}
+      pixel = %{pixel | color: color, dirty: true, wall_id: wall.id}
       %{wall | pixels: Map.put(wall.pixels, coord_key(x, y), pixel)}
     else
       wall
