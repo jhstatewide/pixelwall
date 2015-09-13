@@ -27,6 +27,8 @@ defmodule Pixelwall.WallChannel do
   end
 
   def handle_in("put_multi", data, socket) do
+    # TODO: just pass through all the data... don't bother sending 
+    # one at a time
     data |> Enum.each(fn(p)->
       handle_put(p)
     end)
