@@ -57,7 +57,8 @@ defmodule Pixelwall.WallServer do
   end
 
   def save_interval do
-    600000 # 10 minutes
+    3600000 # 1 hour
+    # 600000 # 10 minutes
     # 10000 # 10 seconds
   end
 
