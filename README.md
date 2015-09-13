@@ -11,4 +11,4 @@ This project is a proof-of-concept networked web canvas. Everything is handled c
 
 ## Thanks
 * José Valim
-* <a href="http://statewide.software">Statewide Software & Systems</a>
+* <a href="http://www.statewidesoftware.com">Statewide Software & Systems</a>
